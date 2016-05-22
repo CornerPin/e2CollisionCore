@@ -1,0 +1,11 @@
+{
+	"title"		:	"CollisionCore",
+	"type"		:	"tool",
+	"tags"		:	[ "fun", "scenic" ],
+	"ignore"	:
+	[
+		"*.psd",
+		"*.vcproj",
+		"*.svn*"
+	]
+}
