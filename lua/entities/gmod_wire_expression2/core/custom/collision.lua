@@ -5,6 +5,7 @@ local collrun = 0
 local DEFAULT_COL = {
 	HitPos = {0, 0, 0},
 	HitEntity = Entity(0),
+	OurEntity = Entity(0),
 	OurOldVelocity = {0, 0, 0},
 	DeltaTime = 0,
 	TheirOldVelocity = {0, 0, 0},
@@ -12,7 +13,6 @@ local DEFAULT_COL = {
 	HitNormal = {0, 0, 0}
 }
 local DEFAULT_TABLE = {n={},ntypes={},s={},stypes={},size=0}
-local targetEntities = {}
 
 ---------------------------------------------------
 registerType("collision", "xcl", DEFAULT_COL,
@@ -44,13 +44,15 @@ __e2setcost(1)
 
 e2function void runOnCollision( entity ent, number activate )
 	if not IsValid( ent ) then return end
+	if ent.ROC == nil then ent.ROC = {} end
+	
 	if activate == 0 then
-		if targetEntities[ent] == nil then return end
-		targetEntities[ent] = false
+		ent.ROC[self.entity] = false
 	else
-		if targetEntities[ent] == nil then
+		if ent.ROC[self.entity] == nil then
 			ent:AddCallback( "PhysicsCollide", function( entity, data )
-				if IsValid(self.entity) and targetEntities[ent] then
+				if IsValid(self.entity) and ent.ROC[self.entity] then
+					data.OurEntity = entity
 					self.CollisionData = data
 					collrun = 1
 					self.entity:Execute()
@@ -58,7 +60,7 @@ e2function void runOnCollision( entity ent, number activate )
 				end
 			end)
 		end
-		targetEntities[ent] = true
+		ent.ROC[self.entity] = true
 	end
 end
 
@@ -74,6 +76,7 @@ end
 local ids = {
 	["HitPos"] = "v",
 	["HitEntity"] = "e",
+	["OurEntity"] = "e",
 	["OurOldVelocity"] = "v",
 	["DeltaTime"] = "n",
 	["TheirOldVelocity"] = "v",
@@ -85,8 +88,12 @@ e2function vector collision:pos()
 	return this.HitPos
 end
 
-e2function vector collision:entity()
+e2function entity collision:entity()
 	return this.HitEntity
+end
+
+e2function entity collision:ourEntity()
+	return this.OurEntity
 end
 
 e2function vector collision:ourOldVel()
@@ -97,11 +104,11 @@ e2function vector collision:theirOldVel()
 	return this.TheirOldVelocity
 end
 
-e2function vector collision:delta()
+e2function number collision:delta()
 	return this.DeltaTime
 end
 
-e2function vector collision:speed()
+e2function number collision:speed()
 	return this.Speed
 end
 
@@ -128,10 +135,4 @@ end
 
 registerCallback("construct", function(self)
 	self.CollisionData = table.Copy(DEFAULT_COL)
-end)
-
-hook.Add("EntityRemoved", "OnRemove", function( ent )
-	if targetEntities[ent] then
-		targetEntities[ent] = nil
-	end
 end)
