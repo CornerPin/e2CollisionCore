@@ -44,23 +44,35 @@ __e2setcost(1)
 
 e2function void runOnCollision( entity ent, number activate )
 	if not IsValid( ent ) then return end
-	if ent.ROC == nil then ent.ROC = {} end
+	if ent.RunOnCollision == nil then ent.RunOnCollision = {} end
 	
 	if activate == 0 then
-		ent.ROC[self.entity] = false
+		ent.RunOnCollision[ self.entity ] = nil
 	else
-		if ent.ROC[self.entity] == nil then
-			ent:AddCallback( "PhysicsCollide", function( entity, data )
-				if IsValid(self.entity) and ent.ROC[self.entity] then
-					data.OurEntity = entity
-					self.CollisionData = data
-					collrun = 1
-					self.entity:Execute()
-					collrun = 0
+		ent.RunOnCollision[ self.entity ] = true
+		
+		if ent.RunOnCollisionCallback == nil then
+			
+			ent.RunOnCollisionCallback = function( entity, data )
+				for ent in pairs( ent.RunOnCollision ) do
+					if IsValid( self.entity ) then
+					
+						data.OurEntity = entity
+						self.entity.CollisionData = data
+						
+						collrun = 1
+						self.entity:Execute()
+						collrun = 0
+						
+					else
+						ent.RunOnCollision[ self.entity ] = nil
+					end
 				end
-			end)
+			end
+			
+			ent:AddCallback( "PhysicsCollide", ent.RunOnCollisionCallback )
+			
 		end
-		ent.ROC[self.entity] = true
 	end
 end
 
@@ -69,20 +81,8 @@ e2function number collideClk()
 end
 
 e2function collision getCollision()
-	return self.CollisionData
+	return self.entity.CollisionData
 end
-
--- Helper table used for toTable
-local ids = {
-	["HitPos"] = "v",
-	["HitEntity"] = "e",
-	["OurEntity"] = "e",
-	["OurOldVelocity"] = "v",
-	["DeltaTime"] = "n",
-	["TheirOldVelocity"] = "v",
-	["Speed"] = "n",
-	["HitNormal"] = "v"
-}
 
 e2function vector collision:pos()
 	return this.HitPos
@@ -117,6 +117,18 @@ e2function vector collision:normal()
 end
 
 __e2setcost(5)
+
+-- Lookup table for toTable
+local ids = {
+	["HitPos"] = "v",
+	["HitEntity"] = "e",
+	["OurEntity"] = "e",
+	["OurOldVelocity"] = "v",
+	["DeltaTime"] = "n",
+	["TheirOldVelocity"] = "v",
+	["Speed"] = "n",
+	["HitNormal"] = "v"
+}
 
 e2function table collision:toTable()
 	local ret = table.Copy(DEFAULT_TABLE)
