@@ -54,18 +54,18 @@ e2function void runOnCollision( entity ent, number activate )
 		if ent.RunOnCollisionCallback == nil then
 			
 			ent.RunOnCollisionCallback = function( entity, data )
-				for ent in pairs( ent.RunOnCollision ) do
-					if IsValid( self.entity ) then
+				for chip in pairs( ent.RunOnCollision ) do
+					if IsValid( chip ) then
 					
 						data.OurEntity = entity
-						self.entity.CollisionData = data
+						chip.CollisionData = data
 						
 						collrun = 1
-						self.entity:Execute()
+						chip:Execute()
 						collrun = 0
 						
 					else
-						ent.RunOnCollision[ self.entity ] = nil
+						ent.RunOnCollision[ chip ] = nil
 					end
 				end
 			end
