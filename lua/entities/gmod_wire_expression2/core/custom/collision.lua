@@ -1,8 +1,8 @@
-E2Lib.RegisterExtension( "collision", false, "Lets E2 chips to detect prop collisions." )
+E2Lib.RegisterExtension( "collision", false, "Lets E2 chips to detect entity collisions." )
 
 
 local collrun = 0
-local DEFAULT_COL = {
+local DEFAULT_COLLISION = {
 	HitPos = {0, 0, 0},
 	HitEntity = Entity(0),
 	OurEntity = Entity(0),
@@ -10,19 +10,20 @@ local DEFAULT_COL = {
 	DeltaTime = 0,
 	TheirOldVelocity = {0, 0, 0},
 	Speed = 0,
-	HitNormal = {0, 0, 0}
+	HitNormal = {0, 0, 0},
+	Valid = false
 }
-local DEFAULT_TABLE = {n={},ntypes={},s={},stypes={},size=0}
+local DEFAULT_TABLE = {n={}, ntypes={}, s={}, stypes={}, size=0}
 
 ---------------------------------------------------
-registerType("collision", "xcl", DEFAULT_COL,
+registerType("collision", "xcl", DEFAULT_COLLISION,
 	nil,
 	nil,
 	function(retval)
-		if !istable(retval) then error("Return value is not a collision, but a "..type(retval).."!",0) end
+		if !istable(retval) then error("Return value is not a collision, but a " .. type(retval) .. "!", 0) end
 	end,
 	function(v)
-		return !istable(v) or not v.Speed
+		return !istable(v) or not v.TheirOldVelocity
 	end
 )
 
@@ -35,8 +36,16 @@ registerOperator("ass", "xcl", "xcl", function(self, args)
 	return rhs
 end)
 
-e2function number operator_is(collision col)
-	if col then return 1 else return 0 end
+e2function number collision:operator_is()
+	return this.Valid and 1 or 0
+end
+
+e2function number collision:operator==( collision other )
+	return this == other and 1 or 0
+end
+
+e2function number collision:operator!=( collision other )
+	return this ~= other and 1 or 0
 end
 
 ---------------------------------------------------
@@ -58,6 +67,7 @@ e2function void runOnCollision( entity ent, number activate )
 					if IsValid( chip ) then
 					
 						data.OurEntity = entity
+						data.Valid = true
 						chip.CollisionData = data
 						
 						collrun = 1
@@ -81,14 +91,14 @@ e2function number collideClk()
 end
 
 e2function collision getCollision()
-	return self.entity.CollisionData
+	return self.entity.CollisionData or DEFAULT_COLLISION
 end
 
-e2function vector collision:pos()
+e2function vector collision:hitPos()
 	return this.HitPos
 end
 
-e2function entity collision:entity()
+e2function entity collision:hitEntity()
 	return this.HitEntity
 end
 
@@ -112,6 +122,21 @@ e2function number collision:speed()
 	return this.Speed
 end
 
+e2function vector collision:hitNormal()
+	return this.HitNormal
+end
+
+
+-- Deprecated
+__e2setcost(30)
+e2function vector collision:pos()
+	return this.HitPos
+end
+
+e2function entity collision:entity()
+	return this.HitEntity
+end
+
 e2function vector collision:normal()
 	return this.HitNormal
 end
@@ -133,18 +158,21 @@ local ids = {
 e2function table collision:toTable()
 	local ret = table.Copy(DEFAULT_TABLE)
 	local size = 0
+
 	for k, v in pairs( this ) do
-		if (ids[k]) then
+		if ids[k] then
 			ret.s[k] = v
 			ret.stypes[k] = ids[k]
 			size = size + 1
 		end
 	end
+
 	ret.size = size
+
 	return ret
 end
 ---------------------------------------------------
 
 registerCallback("construct", function(self)
-	self.CollisionData = table.Copy(DEFAULT_COL)
+	self.CollisionData = table.Copy(DEFAULT_COLLISION)
 end)
