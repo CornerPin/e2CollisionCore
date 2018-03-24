@@ -1,11 +1,11 @@
-E2Lib.RegisterExtension( "collision", false, "Lets E2 chips to detect entity collisions." )
+E2Lib.RegisterExtension("collision", false, "Lets E2 chips to detect entity collisions.")
 
 
 local collrun = 0
 local DEFAULT_COLLISION = {
 	HitPos = {0, 0, 0},
-	HitEntity = Entity(0),
-	OurEntity = Entity(0),
+	HitEntity = NULL,
+	OurEntity = NULL,
 	OurOldVelocity = {0, 0, 0},
 	DeltaTime = 0,
 	TheirOldVelocity = {0, 0, 0},
@@ -29,7 +29,7 @@ registerType("collision", "xcl", DEFAULT_COLLISION,
 
 registerOperator("ass", "xcl", "xcl", function(self, args)
 	local lhs, op2, scope = args[2], args[3], args[4]
-	local      rhs = op2[1](self, op2)
+	local rhs = op2[1](self, op2)
 
 	self.Scopes[scope][lhs] = rhs
 	self.Scopes[scope].vclk[lhs] = true
@@ -40,48 +40,48 @@ e2function number collision:operator_is()
 	return this.Valid and 1 or 0
 end
 
-e2function number collision:operator==( collision other )
+e2function number collision:operator==(collision other)
 	return this == other and 1 or 0
 end
 
-e2function number collision:operator!=( collision other )
+e2function number collision:operator!=(collision other)
 	return this ~= other and 1 or 0
 end
 
 ---------------------------------------------------
 __e2setcost(1)
 
-e2function void runOnCollision( entity ent, number activate )
-	if not IsValid( ent ) then return end
+e2function void runOnCollision(entity ent, number activate)
+	if not IsValid(ent) then return end
 	if ent.RunOnCollision == nil then ent.RunOnCollision = {} end
 	
 	if activate == 0 then
-		ent.RunOnCollision[ self.entity ] = nil
+		ent.RunOnCollision[self.entity] = nil
 	else
-		ent.RunOnCollision[ self.entity ] = true
+		ent.RunOnCollision[self.entity] = true
 		
 		if ent.RunOnCollisionCallback == nil then
-			
-			ent.RunOnCollisionCallback = function( entity, data )
-				for chip in pairs( ent.RunOnCollision ) do
-					if IsValid( chip ) then
+			ent.RunOnCollisionCallback = function(entity, data)
+				for chip in pairs(ent.RunOnCollision) do
+					if IsValid(chip) then
 					
 						data.OurEntity = entity
 						data.Valid = true
-						chip.CollisionData = data
-						
-						collrun = 1
-						chip:Execute()
-						collrun = 0
-						
+
+						if chip.context then
+							chip.context.CollisionData = data
+							
+							collrun = 1
+							chip:Execute()
+							collrun = 0
+						end
 					else
-						ent.RunOnCollision[ chip ] = nil
+						ent.RunOnCollision[chip] = nil
 					end
 				end
 			end
 			
-			ent:AddCallback( "PhysicsCollide", ent.RunOnCollisionCallback )
-			
+			ent:AddCallback("PhysicsCollide", ent.RunOnCollisionCallback)
 		end
 	end
 end
@@ -91,11 +91,12 @@ e2function number collideClk()
 end
 
 e2function collision getCollision()
-	return self.entity.CollisionData or DEFAULT_COLLISION
+	return self.CollisionData or table.Copy(DEFAULT_COLLISION)
 end
 
 e2function vector collision:hitPos()
-	return this.HitPos
+	local pos = this.HitPos
+	return {pos[1], pos[2], pos[3]}
 end
 
 e2function entity collision:hitEntity()
@@ -107,11 +108,13 @@ e2function entity collision:ourEntity()
 end
 
 e2function vector collision:ourOldVel()
-	return this.OurOldVelocity
+	local vel = this.OurOldVelocity
+	return {vel[1], vel[2], vel[3]}
 end
 
 e2function vector collision:theirOldVel()
-	return this.TheirOldVelocity
+	local vel = this.TheirOldVelocity
+	return {vel[1], vel[2], vel[3]}
 end
 
 e2function number collision:delta()
@@ -123,14 +126,16 @@ e2function number collision:speed()
 end
 
 e2function vector collision:hitNormal()
-	return this.HitNormal
+	local normal = this.HitNormal
+	return {normal[1], normal[2], normal[3]}
 end
 
 
 -- Deprecated
 __e2setcost(30)
 e2function vector collision:pos()
-	return this.HitPos
+	local pos = this.HitPos
+	return {pos[1], pos[2], pos[3]}
 end
 
 e2function entity collision:entity()
@@ -138,7 +143,8 @@ e2function entity collision:entity()
 end
 
 e2function vector collision:normal()
-	return this.HitNormal
+	local normal = this.HitNormal
+	return {normal[1], normal[2], normal[3]}
 end
 
 __e2setcost(5)
@@ -159,10 +165,17 @@ e2function table collision:toTable()
 	local ret = table.Copy(DEFAULT_TABLE)
 	local size = 0
 
-	for k, v in pairs( this ) do
-		if ids[k] then
-			ret.s[k] = v
-			ret.stypes[k] = ids[k]
+	for k, v in pairs(this) do
+		local e2type = ids[k]
+
+		if e2type then
+			if e2type == "v" then
+				ret.s[k] = {v[1], v[2], v[3]}
+			else
+				ret.s[k] = v
+			end
+			
+			ret.stypes[k] = e2type
 			size = size + 1
 		end
 	end
