@@ -1,6 +1,6 @@
 E2Helper.Descriptions["runOnCollision(en)"] = "If set to 1, E2 will run when specified entity collides"
 E2Helper.Descriptions["collideClk()"] = "Returns 1 if the chip execution was caused by collision"
-E2Helper.Descriptions["getCollision(xcl:)"] = "Returns the collision data from the last collision"
+E2Helper.Descriptions["getCollision()"] = "Returns the collision data from the last collision"
 E2Helper.Descriptions["hitPos(xcl:)"] = "Returns the collision position"
 E2Helper.Descriptions["hitEntity(xcl:)"] = "Returns the entity that we collide with"
 E2Helper.Descriptions["ourEntity(xcl:)"] = "Returns the entity that collides"
