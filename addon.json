@@ -1,12 +1,11 @@
 {
 	"title"		:	"CollisionCore",
 	"type"		:	"tool",
-	"tags"		:	[ "fun", "scenic" ],
+	"tags"		:	["build", "fun"],
 	"ignore"	:
 	[
-		"*.psd",
-		"*.vcproj",
-		"*.svn*",
-		".git*"
+		".git*",
+		"*.md",
+		"LICENSE"
 	]
 }
