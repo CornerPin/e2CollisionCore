@@ -8,7 +8,12 @@ local defaultCollision = {
 	HitPos = vector_origin,
 	OurOldVelocity = vector_origin,
 	TheirOldVelocity = vector_origin,
+	OurNewVelocity = vector_origin,
+	TheirNewVelocity = vector_origin,
+	OurOldAngularVelocity = vector_origin,
+	TheirOldAngularVelocity = vector_origin,
 	HitNormal = vector_origin,
+	HitSpeed = vector_origin,
 	DeltaTime = 0,
 	Speed = 0,
 	Valid = false
@@ -25,11 +30,16 @@ local function createDefaultTable()
 			HitPos = "v",
 			OurOldVelocity = "v",
 			TheirOldVelocity = "v",
+			OurNewVelocity = "v",
+			TheirNewVelocity = "v",
+			OurOldAngularVelocity = "v",
+			TheirOldAngularVelocity = "v",
 			HitNormal = "v",
+			HitSpeed = "v",
 			DeltaTime = "n",
 			Speed = "n"
 		},
-		size = 8
+		size = 13
 	}
 end
 
@@ -120,16 +130,16 @@ e2function collision getCollision()
 	return self.CollisionData or defaultCollision
 end
 
-e2function vector collision:hitPos()
-	return Vector(this.HitPos)
-end
-
 e2function entity collision:hitEntity()
 	return this.HitEntity
 end
 
 e2function entity collision:ourEntity()
 	return this.OurEntity
+end
+
+e2function vector collision:hitPos()
+	return Vector(this.HitPos)
 end
 
 e2function vector collision:ourOldVel()
@@ -140,6 +150,30 @@ e2function vector collision:theirOldVel()
 	return Vector(this.TheirOldVelocity)
 end
 
+e2function vector collision:ourNewVel()
+	return Vector(this.OurNewVelocity)
+end
+
+e2function vector collision:theirNewVel()
+	return Vector(this.TheirNewVelocity)
+end
+
+e2function vector collision:ourOldAngularVel()
+	return Vector(this.OurOldAngularVelocity)
+end
+
+e2function vector collision:theirOldAngularVel()
+	return Vector(this.TheirOldAngularVelocity)
+end
+
+e2function vector collision:hitNormal()
+	return Vector(this.HitNormal)
+end
+
+e2function vector collision:hitSpeed()
+	return Vector(this.HitSpeed)
+end
+
 e2function number collision:delta()
 	return this.DeltaTime
 end
@@ -148,13 +182,8 @@ e2function number collision:speed()
 	return this.Speed
 end
 
-e2function vector collision:hitNormal()
-	return Vector(this.HitNormal)
-end
-
-
 -- Deprecated
-__e2setcost(30)
+__e2setcost(60)
 
 e2function vector collision:pos()
 	return Vector(this.HitPos)
